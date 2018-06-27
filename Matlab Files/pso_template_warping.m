@@ -1,4 +1,4 @@
-function out = template_warping(problem, params, templatePoints, template, warp_params)
+function out = pso_template_warping(problem, params, templatePoints, template, warp_params)
     %% Problem definition
     
     nVar = 2; % Number of Unknown (Decision) variables
