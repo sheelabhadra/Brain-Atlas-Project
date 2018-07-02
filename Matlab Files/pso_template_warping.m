@@ -1,4 +1,4 @@
-function out = pso_template_warping(problem, params, templatePoints, template, warp_params)
+function out = pso_template_warping(problem, params, templatePoints, template, base_edge, warp_params)
     %% Problem definition
     
     nVar = 2; % Number of Unknown (Decision) variables
@@ -86,7 +86,7 @@ function out = pso_template_warping(problem, params, templatePoints, template, w
             Wtemplate = imwarp(template,tform);
             
             % Update particle cost
-            particle(cp,i).Cost = mod_EPF(Wtemplate, warp_params.dist_EPF, warp_params.angle_EPF, warp_params.angle_EPF_template, templatePoints, swarmPoints);
+            particle(cp,i).Cost = mod_EPF(Wtemplate, base_edge, warp_params.dist_EPF, warp_params.angle_EPF, warp_params.angle_EPF_template, templatePoints, swarmPoints);
             
             % Update the Personal Best
             particle(cp,i).Best.Position = particle(cp,i).Position;
@@ -171,7 +171,7 @@ function out = pso_template_warping(problem, params, templatePoints, template, w
         Wtemplate = imwarp(template,tform);
         
         % Find the modified EPF cost
-        selected_particles_cost = mod_EPF(Wtemplate, warp_params.dist_EPF, warp_params.angle_EPF, warp_params.angle_EPF_template, templatePoints, swarmPoints);
+        selected_particles_cost = mod_EPF(Wtemplate, base_edge, warp_params.dist_EPF, warp_params.angle_EPF, warp_params.angle_EPF_template, templatePoints, swarmPoints);
         
         % Evaluation
         for i=1:size(templatePoints,1)
