@@ -1,4 +1,5 @@
-EPF = 0.0;
+function z = mod_EPF(template, base_edge, dist_EPF, angle_EPF, templatePoints, swarmPoints)
+  EPF = 0.0;
    
    % Change this function you dimwit - make it dependent on the warped template !!
    % How could you even miss that at the first place ?!
