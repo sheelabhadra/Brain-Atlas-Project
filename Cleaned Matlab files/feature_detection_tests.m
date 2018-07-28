@@ -145,8 +145,8 @@
 %% Matlab standalone
 
 % base_full = imread('template_gray.jpg');
-% base_full = Iregistered;
-base_full = Iregistered1;
+base_full = Iregistered;
+% base_full = Iregistered1;
 % base_full = rgb2gray(template);
 
 % base_full = imread('base_img_1.jpg');
@@ -166,8 +166,8 @@ corners1 = detectHarrisFeatures(base_down_edges);
 % corners1 = detectBRISKFeatures(base_down);
 [features1,valid_points1] = extractFeatures(base_down,corners1);
 
-% I = imread('20170913_D2CreAi14_M529_G_RB_pDMS_S1P2_R1C4_001.tif');
-I = imread('5 images and skeleton/20180614_D1CreSnap25_M96_G_RB_pDMS_Part1_R3C2_001.tif');
+I = imread('20170913_D2CreAi14_M529_G_RB_pDMS_S1P2_R1C4_001.tif');
+% I = imread('5 images and skeleton/20180614_D1CreSnap25_M96_G_RB_pDMS_Part1_R3C2_001.tif');
 I = rgb2gray(I);
 I = imresize(I, 0.1, 'bicubic');
 I = padarray(I,[50 50],0,'both');
