@@ -1,6 +1,5 @@
-function [] = warp_image(image, skeleton, movingPoints, fixedPoints)
+function Imgregistered = warp_image(image, skeleton, movingPoints, fixedPoints, sktoimg, plot)
     % NOTE: Load package.mat first if you need the existing Control Points
-    
     %% Read images
     % Reads the image and resizes it
     I = imread(image);
@@ -25,17 +24,24 @@ function [] = warp_image(image, skeleton, movingPoints, fixedPoints)
     % Save the Control Points in the work-space
     % cpselect(J, I) % Uncomment to access the Control Point selection tool
 
-    %% Uncomment this section if fitting skeleton to image
-    tform = fitgeotrans(movingPoints, fixedPoints, 'polynomial', 2);
-    Jregistered = imwarp(J,tform,'OutputView',imref2d(size(I)));
+    %% if fitting skeleton to image
+    if sktoimg
+        tform = fitgeotrans(movingPoints, fixedPoints, 'polynomial', 2);
+        Imgregistered = imwarp(J,tform,'OutputView',imref2d(size(I)));
+        
+        if plot
+            figure;
+            imshowpair(Imgregistered,I)
+        end
 
-    figure;
-    imshowpair(Jregistered,I)
-
-    %% Uncomment this section if fitting image to skeleton
-    % tform = fitgeotrans(fixedPoints27, movingPoints27, 'polynomial', 2);
-    % Iregistered1 = imwarp(I,tform,'OutputView',imref2d(size(J)));
-
-    % figure;
-    % imshowpair(Iregistered1,J)
+    %% if fitting image to skeleton
+    else
+        tform = fitgeotrans(fixedPoints, movingPoints, 'polynomial', 2);
+        Imgregistered = imwarp(I,tform,'OutputView',imref2d(size(J)));
+        
+        if plot
+            figure;
+            imshowpair(Imgregistered,J)
+        end
+    end
 end
