@@ -1,4 +1,10 @@
 # Brain-Atlas-Project
-Code repository for segmentation of rat brain atlases.  
+Matlab code for the automatic use of the Allen Brain Institute's Mouse Brain Atlas.
 
-The code developed is in Python 3. The dependecies for the project can be installed by running `pip install -r requirements.txt`.
+This program:
+- Chooses the corresponding skeleton from the atlas for an image of a brain slice
+- Registers the skeleton to the base image
+- Counts fluorescently-marked neurons and exports them with respect to the sections they are located in
+
+### Resources Used
+- [Matlab Image Processing Toolbox](https://www.mathworks.com/products/image.html)
