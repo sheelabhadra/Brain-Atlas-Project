@@ -34,21 +34,21 @@ function [Imregistered, tform] = cpselect_warp(image, skeleton, sktoimg, pl)
     %% if fitting skeleton to image
     if sktoimg
         tform = fitgeotrans(movingPoints, fixedPoints, 'polynomial', 2);
-        Imgregistered = imwarp(J,tform,'OutputView',imref2d(size(I)));
+        Imregistered = imwarp(J,tform,'OutputView',imref2d(size(I)));
 
         if pl
             figure;
-            imshowpair(Imgregistered,I)
+            imshowpair(Imregistered,I)
         end
 
     %% if fitting image to skeleton
     else
         tform = fitgeotrans(fixedPoints, movingPoints, 'polynomial', 2);
-        Imgregistered = imwarp(I,tform,'OutputView',imref2d(size(J)));
+        Imregistered = imwarp(I,tform,'OutputView',imref2d(size(J)));
 
         if pl
             figure;
-            imshowpair(Imgregistered,J)
+            imshowpair(Imregistered,J)
         end
     end
 end
