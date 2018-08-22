@@ -20,9 +20,7 @@ function [count, totalCount] = count_neurons(tform, skeleton, neuron_img, orig_c
     neurons = neurons(:,:,2);
 
     % Extract query points
-    [row, col] = find(neurons);
-    xq = col;
-    yq = row;
+    [xq, yq] = find(neurons);
 
     str = 'region';
     totalCount = 0;
@@ -34,22 +32,31 @@ function [count, totalCount] = count_neurons(tform, skeleton, neuron_img, orig_c
     for i=1:size(orig_coords.regions,2)
         varName = sprintf('%s_%d', str, i);
         coords = getfield(orig_coords, varName);
-        xv = coords(:,2);
-        yv = coords(:,1);
+        xv = coords(:,1);
+        yv = coords(:,2);
         tfRegion = zeros(800,1000,'uint8');
         for j=1:size(xv,1)
-            tfRegion(yv(j),xv(j)) = uint8(255);
+            tfRegion(xv(j),yv(j)) = uint8(255);
         end
 
         tfRegion = imresize(tfRegion, size(rgb2gray(imread(skeleton)))); % Resize the skeleton to given skeleton's size
         tfRegion = imwarp(tfRegion,tform,'OutputView',imref2d(size(neurons))); % Apply warping
-        
-        [newyv,newxv] = find(tfRegion > 150); % Find the coordinates of the polygon (region)
+
+        % Binarize tfRegion
+        tfRegion = imbinarize(tfRegion);
+
+        % Apply bwboundaries() to arrange coordinates in the correct order
+        B = bwboundaries(tfRegion, 'noholes');
+    
+        newcoords = B{1};
+        newxv = newcoords(:,1);
+        newyv = newcoords(:,2);
+    
         [in,on] = inpolygon(xq, yq, newxv, newyv); % Calculate number of points (neurons) inside the polygon (region)
         count.(varName) = int32(numel(xq(in)));
         totalCount = totalCount + int32(numel(xq(in)));
+        
     end
-
     % Export region-wise neuron count to an excel file
     T = struct2table(count);
     filename = sprintf('neuron_count_%d.xlsx', APnum);
