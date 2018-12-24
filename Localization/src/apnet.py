@@ -2,7 +2,10 @@
 import glob
 import cv2
 import numpy as np
-
+from keras import backend as K
+K.set_image_data_format('channels_first')
+from utils import *
+from inception_blocks_v2 import *
 
 def triplet_loss(y_true, y_pred, alpha=0.3):
 	"""Implementation of Triplet Loss function
@@ -56,21 +59,23 @@ def prepare_database(path="../../Data/AP-image-data/", image_ext="tif"):
 	return np.array(X), np.array(y)
 
 
-def prepare_embedding(path="../../Data/AP-image-data/", image_ext="tif"):
+def prepare_embedding(model, path="../../Data/AP-image-data/", image_ext="tif"):
 	embedding_dict = {}
+	labels = {}
 
 	i = 0
 	for file in glob.glob(path+'*'):
 		labels[i] = file.split('/')[-1].split('_')[0]
+		print("Finding embedding for {}".format(labels[i]))
 		embedding = []
 		images = glob.glob(file+'/*.'+image_ext)
-		y.extend([i]*len(images))
+	
 		for img in images:
 			gray = cv2.imread(img, 0) # Convert to grayscale/single color
 			x = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
 			x = cv2.resize(x, (96, 96)) # Reshape the images to 96x96
 			x = x/255.0 # Normalization
-			embedding.append(labels[i]) = img_to_encoding(x, APmodel)
+			embedding.append(img_to_encoding(x, model))
 		embedding_dict[labels[i]] = embedding
 		i += 1
 
@@ -110,11 +115,13 @@ def main():
 	APmodel = ap_reco_model(input_shape=(3, 96, 96))
 	APmodel.compile(optimizer = 'adam', loss = triplet_loss, metrics = ['accuracy'])
 	load_weights_from_FaceNet(APmodel)
-	# APmodel.fit()
-	X, y = prepare_database()
 
 	# Get inference on pre-trained model
+	embedding_dict = prepare_embedding(model=APmodel)
 
+	# Save labels in a text file
+	with open('../../Data/embedding_dict.txt', 'w') as f:
+		print(embedding_dict, file=f)
 
 
 if __name__ == '__main__':
