@@ -3,8 +3,6 @@ import glob
 import cv2
 import numpy as np
 
-APmodel = ap_reco_model(input_shape=(3, 96, 96))
-
 
 def triplet_loss(y_true, y_pred, alpha=0.3):
 	"""Implementation of Triplet Loss function
@@ -29,10 +27,6 @@ def triplet_loss(y_true, y_pred, alpha=0.3):
 	return loss
 
 
-APmodel.compile(optimizer = 'adam', loss = triplet_loss, metrics = ['accuracy'])
-load_weights_from_FaceNet(APmodel)
-
-
 def prepare_database(path="../../Data/AP-image-data/", image_ext="tif"):
 	X, y = [], []
 	labels = {}
@@ -40,11 +34,12 @@ def prepare_database(path="../../Data/AP-image-data/", image_ext="tif"):
 	i = 0
 	for file in glob.glob(path+'*'):
 		labels[i] = file.split('/')[-1].split('_')[0]
-		print(labels[i])
+		embedding = []
 		images = glob.glob(file+'/*.'+image_ext)
 		y.extend([i]*len(images))
 		for img in images:
-			x = cv2.imread(img, 1) # Keep images in original color - change this to grayscale/single color
+			gray = cv2.imread(img, 0) # Convert to grayscale/single color
+			x = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
 			x = cv2.resize(x, (96, 96)) # Reshape the images to 96x96
 			x = x/255.0 # Normalization
 			X.append(x)
@@ -61,9 +56,66 @@ def prepare_database(path="../../Data/AP-image-data/", image_ext="tif"):
 	return np.array(X), np.array(y)
 
 
-def main():
-	X, y = prepare_database()
+def prepare_embedding(path="../../Data/AP-image-data/", image_ext="tif"):
+	embedding_dict = {}
+
+	i = 0
+	for file in glob.glob(path+'*'):
+		labels[i] = file.split('/')[-1].split('_')[0]
+		embedding = []
+		images = glob.glob(file+'/*.'+image_ext)
+		y.extend([i]*len(images))
+		for img in images:
+			gray = cv2.imread(img, 0) # Convert to grayscale/single color
+			x = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+			x = cv2.resize(x, (96, 96)) # Reshape the images to 96x96
+			x = x/255.0 # Normalization
+			embedding.append(labels[i]) = img_to_encoding(x, APmodel)
+		embedding_dict[labels[i]] = embedding
+		i += 1
+
+	return embedding_dict
+
+
+def train_test_split(X, y):
+	"""Divides the dataset into train and test data
+
+	Args:
+		X (ndarray): List of images
+		y (ndarray): List of labels
+
+	Returns:
+		X_train (ndarray)
+		X_test (ndarray)
+		y_train (ndarray)
+		y_test (ndarray)
+	"""
 	
+	X_train, X_test = [], []
+	y_train, y_test = [], []
+	
+	for i in range(len(X)):
+		if (i+1)%5 == 0:
+			X_test.append(X[i])
+			y_test.append(y[i])
+		else:
+			X_train.append(X[i])
+			y_train.append(y[i])
+
+	return np.array(X_train), np.array(X_test), np.array(y_train), np.array(y_test)
+
+
+def main():
+	# X_train, X_test, y_train, y_test = train_test_split(X, y)
+	APmodel = ap_reco_model(input_shape=(3, 96, 96))
+	APmodel.compile(optimizer = 'adam', loss = triplet_loss, metrics = ['accuracy'])
+	load_weights_from_FaceNet(APmodel)
+	# APmodel.fit()
+	X, y = prepare_database()
+
+	# Get inference on pre-trained model
+
+
 
 if __name__ == '__main__':
 	main()
