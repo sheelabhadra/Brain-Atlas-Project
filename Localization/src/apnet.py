@@ -111,7 +111,6 @@ def train_test_split(X, y):
 
 
 def main():
-	# X_train, X_test, y_train, y_test = train_test_split(X, y)
 	APmodel = ap_reco_model(input_shape=(3, 96, 96))
 	APmodel.compile(optimizer = 'adam', loss = triplet_loss, metrics = ['accuracy'])
 	load_weights_from_FaceNet(APmodel)
@@ -119,7 +118,7 @@ def main():
 	# Get inference on pre-trained model
 	embedding_dict = prepare_embedding(model=APmodel)
 
-	# Save labels in a text file
+	# Save the embedding dictionary in a text file
 	with open('../../Data/embedding_dict.txt', 'w') as f:
 		print(embedding_dict, file=f)
 
