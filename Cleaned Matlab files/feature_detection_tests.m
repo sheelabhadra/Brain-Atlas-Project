@@ -145,9 +145,12 @@
 %% Matlab standalone
 
 % base_full = imread('template_gray.jpg');
-base_full = Iregistered;
+% base_full = Iregistered;
 % base_full = Iregistered1;
 % base_full = rgb2gray(template);
+base_full = imread('../Data/AP-image-data/train/-0.46/01.jpg');
+base_full = base_full(:,:,1);
+base_full = imresize(base_full, 0.2, 'bicubic');
 
 % base_full = imread('base_img_1.jpg');
 % base_full = histeq(base_full);
@@ -166,11 +169,12 @@ corners1 = detectHarrisFeatures(base_down_edges);
 % corners1 = detectBRISKFeatures(base_down);
 [features1,valid_points1] = extractFeatures(base_down,corners1);
 
-I = imread('20170913_D2CreAi14_M529_G_RB_pDMS_S1P2_R1C4_001.tif');
+I = imread('../Data/AP-image-data/train/-0.22/01.jpg');
 % I = imread('5 images and skeleton/20180614_D1CreSnap25_M96_G_RB_pDMS_Part1_R3C2_001.tif');
-I = rgb2gray(I);
-I = imresize(I, 0.1, 'bicubic');
-I = padarray(I,[50 50],0,'both');
+% I = rgb2gray(I);
+I = I(:,:,1);
+I = imresize(I, 0.2, 'bicubic');
+% I = padarray(I,[50 50],0,'both');
 
 % base_full_2 = imread('base_img_2.jpg');
 base_full_2 = I;
@@ -178,12 +182,6 @@ base_down_2 = imdilate(base_full_2, se);
 % base_down_2 = imdilate(base_down_2, se);
 % base_down_2 = imdilate(base_down_2, se);
 % base_down_2 = im2bw(base_down_2, 0.2);
-
-% figure;
-% imshow(base_down)
-% 
-% figure;
-% imshow(base_down_2)
 
 base_down_2_edges = edge(base_down_2,'Canny');
 
@@ -210,7 +208,7 @@ matchedPoints2 = valid_points2(indexPairs(:,2),:);
 % Discard points that are far away
 % Remember that we only need the (X,Y) coordinates of the feature points
 
-th_dist = 100;
+th_dist = 500;
 
 img1_points = 0;
 img2_points = 0;
@@ -252,11 +250,21 @@ matchedPoints2 = valid_points2(indexPairs(:,2),:);
 for i=1:size(matchedPoints1.Location,1)
     if ((matchedPoints1.Location(i,1) - matchedPoints2.Location(i,1))^2 + ...
             (matchedPoints1.Location(i,2) - matchedPoints2.Location(i,2))^2)^0.5 < th_dist
+        if img1_points == 0
+            img1_points = matchedPoints1.Location(i,:);
+            img2_points = matchedPoints2.Location(i,:);
+        else
             img1_points = [img1_points; matchedPoints1.Location(i,:)];
             img2_points = [img2_points; matchedPoints2.Location(i,:)];
+        end
     end
 end
 
-figure; 
-showMatchedFeatures(base_down,base_down_2,img1_points,img2_points);
+csvwrite('../Localization/feature-points/moving_img_pts.csv', img1_points);
+csvwrite('../Localization/feature-points/fixed_img_pts.csv', img2_points);
+
+if img1_points
+    figure;
+    showMatchedFeatures(base_down,base_down_2,img1_points,img2_points);
+end
 
