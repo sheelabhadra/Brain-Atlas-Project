@@ -164,7 +164,7 @@ reference_images = string(reference_images);
 
 query_image = '../Data/AP-image-data/train/-0.46/02.jpg';
 
-candidates = [];
+candidates = {};
 feature_match_points = [];
 feature_match_points_size = [];
 
@@ -285,7 +285,7 @@ for ap=1:size(reference_images, 1)
     % #feature matches > threshold
     if size(img1_points,1) > 5
         disp(reference_images(ap))
-        candidates(end+1) = reference_images(ap);
+        candidates{end+1} = reference_images(ap);
         feature_match_points = [feature_match_points; img2_points];
         feature_match_points = [feature_match_points; img1_points];
         feature_match_points_size(end+1) = size(img1_points, 1);
@@ -295,11 +295,11 @@ for ap=1:size(reference_images, 1)
 %         figure;
 %         showMatchedFeatures(base_down,base_down_2,img1_points,img2_points);
 %     end
+end
 
 % Save the candidates and coordinates
-csvwrite('../Localization/feature-points/candidates.csv', candidates);
+candidates = cell2table(candidates');
+writetable(candidates,'../Localization/feature-points/candidates.csv');
 csvwrite('../Localization/feature-points/feature_match_points.csv', feature_match_points);
 csvwrite('../Localization/feature-points/feature_match_points_size.csv', feature_match_points_size);
-
-end
 
