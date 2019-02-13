@@ -148,123 +148,158 @@
 % base_full = Iregistered;
 % base_full = Iregistered1;
 % base_full = rgb2gray(template);
-base_full = imread('../Data/AP-image-data/train/-0.46/01.jpg');
-base_full = base_full(:,:,1);
-base_full = imresize(base_full, 0.2, 'bicubic');
 
-% base_full = imread('base_img_1.jpg');
-% base_full = histeq(base_full);
-se = strel('disk', 2);
-% se = strel('line',3,10);
-base_down = imdilate(base_full, se);
-% base_down = im2bw(base_down, 0.2);
+reference_images = {'../Data/AP-image-data/train/-0.22/01.jpg';
+    '../Data/AP-image-data/train/-0.46/01.jpg';
+    '../Data/AP-image-data/train/-0.94/01.jpg';
+    '../Data/AP-image-data/train/-1.06/01.jpg';
+    '../Data/AP-image-data/train/-1.94/01.jpg';
+    '../Data/AP-image-data/train/0.02/01.jpg';
+    '../Data/AP-image-data/train/0.38/01.jpg';
+    '../Data/AP-image-data/train/0.86/04.jpg';
+    '../Data/AP-image-data/train/1.54/01.jpg';
+    '../Data/AP-image-data/train/2.58/02.jpg'};
 
-base_down_edges = edge(base_down,'Canny');
+reference_images = string(reference_images);
 
-% Dilation, Erosion, Preprocessing
-% se = strel('line',5,10);
-% se = strel('disk',3);
+query_image = '../Data/AP-image-data/train/-0.46/02.jpg';
 
-corners1 = detectHarrisFeatures(base_down_edges);
-% corners1 = detectBRISKFeatures(base_down);
-[features1,valid_points1] = extractFeatures(base_down,corners1);
+candidates = [];
+feature_match_points = [];
+feature_match_points_size = [];
 
-I = imread('../Data/AP-image-data/train/-0.22/01.jpg');
-% I = imread('5 images and skeleton/20180614_D1CreSnap25_M96_G_RB_pDMS_Part1_R3C2_001.tif');
-% I = rgb2gray(I);
-I = I(:,:,1);
-I = imresize(I, 0.2, 'bicubic');
-% I = padarray(I,[50 50],0,'both');
+for ap=1:size(reference_images, 1)
+    base_full = imread(reference_images(ap));
+    base_full = base_full(:,:,1);
+    base_full = imresize(base_full, 0.2, 'bicubic');
 
-% base_full_2 = imread('base_img_2.jpg');
-base_full_2 = I;
-base_down_2 = imdilate(base_full_2, se);
-% base_down_2 = imdilate(base_down_2, se);
-% base_down_2 = imdilate(base_down_2, se);
-% base_down_2 = im2bw(base_down_2, 0.2);
+    % base_full = imread('base_img_1.jpg');
+    % base_full = histeq(base_full);
+    se = strel('disk', 2);
+    % se = strel('line',3,10);
+    base_down = imdilate(base_full, se);
+    % base_down = im2bw(base_down, 0.2);
 
-base_down_2_edges = edge(base_down_2,'Canny');
+    base_down_edges = edge(base_down,'Canny');
 
-corners2 = detectHarrisFeatures(base_down_2_edges);
-% corners2 = detectBRISKFeatures(base_down_2);
-[features2,valid_points2] = extractFeatures(base_down_2,corners2);
+    % Dilation, Erosion, Preprocessing
+    % se = strel('line',5,10);
+    % se = strel('disk',3);
 
-% figure;
-% imshow(base_down_2); hold on;
-% plot(valid_points2)
-% hold off;
+    corners1 = detectHarrisFeatures(base_down_edges);
+    % corners1 = detectBRISKFeatures(base_down);
+    [features1,valid_points1] = extractFeatures(base_down,corners1);
 
-% base_full_2 = imread('edited_template.jpg');
-% base_down_2 = rgb2gray(base_full_2);
-% base_down_2 = imresize(base_down_2, [255 408]);
-% base_down_2 = imdilate(base_down_2, se);
+    I = imread(query_image);
+    % I = imread('5 images and skeleton/20180614_D1CreSnap25_M96_G_RB_pDMS_Part1_R3C2_001.tif');
+    % I = rgb2gray(I);
+    I = I(:,:,1);
+    I = imresize(I, 0.2, 'bicubic');
+    % I = padarray(I,[50 50],0,'both');
 
-indexPairs = matchFeatures(features1,features2,'Method','SSD','Method','Exhaustive',...
-    'MaxRatio',0.6,'Unique',true,'MatchThreshold',20);
+    % base_full_2 = imread('base_img_2.jpg');
+    base_full_2 = I;
+    base_down_2 = imdilate(base_full_2, se);
+    % base_down_2 = imdilate(base_down_2, se);
+    % base_down_2 = imdilate(base_down_2, se);
+    % base_down_2 = im2bw(base_down_2, 0.2);
 
-matchedPoints1 = valid_points1(indexPairs(:,1),:);
-matchedPoints2 = valid_points2(indexPairs(:,2),:);
+    base_down_2_edges = edge(base_down_2,'Canny');
 
-% Discard points that are far away
-% Remember that we only need the (X,Y) coordinates of the feature points
+    corners2 = detectHarrisFeatures(base_down_2_edges);
+    % corners2 = detectBRISKFeatures(base_down_2);
+    [features2,valid_points2] = extractFeatures(base_down_2,corners2);
 
-th_dist = 500;
+    % figure;
+    % imshow(base_down_2); hold on;
+    % plot(valid_points2)
+    % hold off;
 
-img1_points = 0;
-img2_points = 0;
+    % base_full_2 = imread('edited_template.jpg');
+    % base_down_2 = rgb2gray(base_full_2);
+    % base_down_2 = imresize(base_down_2, [255 408]);
+    % base_down_2 = imdilate(base_down_2, se);
 
-for i=1:size(matchedPoints1.Location,1)
-    if ((matchedPoints1.Location(i,1) - matchedPoints2.Location(i,1))^2 + ...
-            (matchedPoints1.Location(i,2) - matchedPoints2.Location(i,2))^2)^0.5 < th_dist
-        if img1_points == 0
-            img1_points = matchedPoints1.Location(i,:);
-            img2_points = matchedPoints2.Location(i,:);
-        else
-            img1_points = [img1_points; matchedPoints1.Location(i,:)];
-            img2_points = [img2_points; matchedPoints2.Location(i,:)];
+    indexPairs = matchFeatures(features1,features2,'Method','SSD','Method','Exhaustive',...
+        'MaxRatio',0.6,'Unique',true,'MatchThreshold',20);
+
+    matchedPoints1 = valid_points1(indexPairs(:,1),:);
+    matchedPoints2 = valid_points2(indexPairs(:,2),:);
+
+    % Discard points that are far away
+    % Remember that we only need the (X,Y) coordinates of the feature points
+
+    th_dist = 200;
+
+    img1_points = 0;
+    img2_points = 0;
+
+    for i=1:size(matchedPoints1.Location,1)
+        if ((matchedPoints1.Location(i,1) - matchedPoints2.Location(i,1))^2 + ...
+                (matchedPoints1.Location(i,2) - matchedPoints2.Location(i,2))^2)^0.5 < th_dist
+            if img1_points == 0
+                img1_points = matchedPoints1.Location(i,:);
+                img2_points = matchedPoints2.Location(i,:);
+            else
+                img1_points = [img1_points; matchedPoints1.Location(i,:)];
+                img2_points = [img2_points; matchedPoints2.Location(i,:)];
+            end
         end
     end
-end
 
-% SURF
-surf_points = detectSURFFeatures(base_down,'MetricThreshold',100,...
-    'NumOctaves',4,'NumScaleLevels',6);
-% figure; imshow(base_down); hold on;
-% plot(surf_points);
+    % SURF
+    surf_points = detectSURFFeatures(base_down,'MetricThreshold',100,...
+        'NumOctaves',4,'NumScaleLevels',6);
+    % figure; imshow(base_down); hold on;
+    % plot(surf_points);
 
-% SURF
-surf_points_2 = detectSURFFeatures(base_down_2,'MetricThreshold',100,...
-    'NumOctaves',4,'NumScaleLevels',6);
-% figure; imshow(base_down_2); hold on;
-% plot(surf_points_2);
+    % SURF
+    surf_points_2 = detectSURFFeatures(base_down_2,'MetricThreshold',100,...
+        'NumOctaves',4,'NumScaleLevels',6);
+    % figure; imshow(base_down_2); hold on;
+    % plot(surf_points_2);
 
-[features1,valid_points1] = extractFeatures(base_down,surf_points);
-[features2,valid_points2] = extractFeatures(base_down_2,surf_points_2);
+    [features1,valid_points1] = extractFeatures(base_down,surf_points);
+    [features2,valid_points2] = extractFeatures(base_down_2,surf_points_2);
 
-indexPairs = matchFeatures(features1,features2,'Method','SSD','Method','Exhaustive',...
-    'MaxRatio',0.5,'Unique',true,'MatchThreshold',20);
+    indexPairs = matchFeatures(features1,features2,'Method','SSD','Method','Exhaustive',...
+        'MaxRatio',0.5,'Unique',true,'MatchThreshold',20);
 
-matchedPoints1 = valid_points1(indexPairs(:,1),:);
-matchedPoints2 = valid_points2(indexPairs(:,2),:);
+    matchedPoints1 = valid_points1(indexPairs(:,1),:);
+    matchedPoints2 = valid_points2(indexPairs(:,2),:);
 
-for i=1:size(matchedPoints1.Location,1)
-    if ((matchedPoints1.Location(i,1) - matchedPoints2.Location(i,1))^2 + ...
-            (matchedPoints1.Location(i,2) - matchedPoints2.Location(i,2))^2)^0.5 < th_dist
-        if img1_points == 0
-            img1_points = matchedPoints1.Location(i,:);
-            img2_points = matchedPoints2.Location(i,:);
-        else
-            img1_points = [img1_points; matchedPoints1.Location(i,:)];
-            img2_points = [img2_points; matchedPoints2.Location(i,:)];
+    for i=1:size(matchedPoints1.Location,1)
+        if ((matchedPoints1.Location(i,1) - matchedPoints2.Location(i,1))^2 + ...
+                (matchedPoints1.Location(i,2) - matchedPoints2.Location(i,2))^2)^0.5 < th_dist
+            if img1_points == 0
+                img1_points = matchedPoints1.Location(i,:);
+                img2_points = matchedPoints2.Location(i,:);
+            else
+                img1_points = [img1_points; matchedPoints1.Location(i,:)];
+                img2_points = [img2_points; matchedPoints2.Location(i,:)];
+            end
         end
     end
-end
+    
+    % Add the reference image to the list of candidates if
+    % #feature matches > threshold
+    if size(img1_points,1) > 5
+        disp(reference_images(ap))
+        candidates(end+1) = reference_images(ap);
+        feature_match_points = [feature_match_points; img2_points];
+        feature_match_points = [feature_match_points; img1_points];
+        feature_match_points_size(end+1) = size(img1_points, 1);
+    end
+    
+%     if img1_points
+%         figure;
+%         showMatchedFeatures(base_down,base_down_2,img1_points,img2_points);
+%     end
 
-csvwrite('../Localization/feature-points/moving_img_pts.csv', img1_points);
-csvwrite('../Localization/feature-points/fixed_img_pts.csv', img2_points);
+% Save the candidates and coordinates
+csvwrite('../Localization/feature-points/candidates.csv', candidates);
+csvwrite('../Localization/feature-points/feature_match_points.csv', feature_match_points);
+csvwrite('../Localization/feature-points/feature_match_points_size.csv', feature_match_points_size);
 
-if img1_points
-    figure;
-    showMatchedFeatures(base_down,base_down_2,img1_points,img2_points);
 end
 
