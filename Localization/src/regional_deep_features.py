@@ -11,7 +11,7 @@ from keras.applications.vgg16 import VGG16
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 
-def ssd(x,y):
+def euclidean_distance(x,y):
     """Sum of squared distance (SSD) between 2 feature vectors.
 
     Args:
@@ -27,7 +27,7 @@ def ssd(x,y):
     
     if x.shape != y.shape:
         raise Exception("The shapes of the arrays are different!")
-    return np.linalg.norm(x,y)
+    return np.linalg.norm(x-y)
 
 
 def cosine_similarity(x,y):
@@ -88,7 +88,7 @@ def regional_vgg_features(filename, coordinates, patch_size=20):
         features_np = np.array(features)
         feature_vector.append(features_np.flatten())
 
-    return feature_vector
+    return np.array(feature_vector)
 
 
 def find_best_match(query_image, candidates, feature_match_points, feature_match_points_size):
@@ -115,23 +115,26 @@ def find_best_match(query_image, candidates, feature_match_points, feature_match
     scores = namedtuple('scores', ['ssd', 'cos_sim'])
     similarity_scores_dict = {}
     for ap,pair in enumerate(feature_match_points_apwise):
+
         # Query image
         query_feature_vector = regional_vgg_features(query_image, pair[:len(pair)//2, :])
+        query_feature_vector = query_feature_vector.flatten()
 
         # Candidate image
         candidate_feature_vector = regional_vgg_features(candidates[ap], pair[len(pair)//2:, :])
+        candidate_feature_vector = candidate_feature_vector.flatten()
 
         # Find the SSD and the Cosine Similarity
-        ssd_score = ssd(query_feature_vector, candidate_feature_vector)
-        cos_sim_score = cosine_similarity(query_feature_vector, candidate_feature_vector)
+        ssd_score = euclidean_distance(np.array(query_feature_vector), np.array(candidate_feature_vector))
+        cos_sim_score = cosine_similarity(np.array(query_feature_vector), np.array(candidate_feature_vector))
 
         ap_num = candidates[ap].split('/')[-2]
-        similarity_scores_dict[ap_num].append(scores(ssd_score, cos_sim_score))
+        similarity_scores_dict[ap_num] = scores(ssd_score, cos_sim_score)
 
     best_match, min_ssd = None, float('inf')
-    for ap_num, scores in similarity_scores_dict.items():
-        if scores.ssd_score < min_ssd:
-            min_ssd = scores.ssd_score
+    for ap_num, score in similarity_scores_dict.items():
+        if score.ssd < min_ssd:
+            min_ssd = score.ssd
             best_match = ap_num
     
     return best_match, similarity_scores_dict
@@ -141,7 +144,7 @@ def main():
     query_image = '../Data/AP-image-data/train/-0.46/02.jpg'
     
     candidates = pd.read_csv('feature-points/candidates.csv', header=None)
-    candidates = candidates.values.flatten()
+    candidates = candidates.values.flatten()[1:]
     
     feature_match_points = pd.read_csv('feature-points/feature_match_points.csv', header=None)
     feature_match_points = feature_match_points.values
@@ -150,6 +153,8 @@ def main():
     feature_match_points_size = feature_match_points_size.values.flatten()
 
     best_matching_AP, similarity_scores_dict = find_best_match(query_image, candidates, feature_match_points, feature_match_points_size)
+    print(best_matching_AP)
+    print(similarity_scores_dict)
 
 if __name__ == '__main__':
     main()
