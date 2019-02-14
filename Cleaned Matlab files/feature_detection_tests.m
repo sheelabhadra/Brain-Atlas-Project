@@ -229,7 +229,7 @@ for ap=1:size(reference_images, 1)
     % Discard points that are far away
     % Remember that we only need the (X,Y) coordinates of the feature points
 
-    th_dist = 200;
+    th_dist = 100;
 
     img1_points = 0;
     img2_points = 0;
@@ -283,7 +283,7 @@ for ap=1:size(reference_images, 1)
     
     % Add the reference image to the list of candidates if
     % #feature matches > threshold
-    if size(img1_points,1) > 5
+    if size(img1_points,1) >= 5
         disp(reference_images(ap))
         candidates{end+1} = reference_images(ap);
         feature_match_points = [feature_match_points; img2_points];
@@ -301,5 +301,5 @@ end
 candidates = cell2table(candidates');
 writetable(candidates,'../Localization/feature-points/candidates.csv');
 csvwrite('../Localization/feature-points/feature_match_points.csv', feature_match_points);
-csvwrite('../Localization/feature-points/feature_match_points_size.csv', feature_match_points_size);
+csvwrite('../Localization/feature-points/feature_match_points_size.csv', feature_match_points_size');
 
